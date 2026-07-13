@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프롬프트 데스크 · 나만의 프롬프트 아카이브</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   ✏️ 편집 가이드 (맨 위에 다 모아뒀어요)
+   1) 아래 "SITE DATA" 섹션의 SITE 객체 → 사이트 이름/소개/SNS 링크
+   2) CATEGORIES 배열 → 카테고리(탭) 추가/삭제/이름변경
+   3) PROMPTS 배열 → 프롬프트 카드 추가. 아래 형식만 지키면 됩니다:
+      { id: 고유숫자, cat: '카테고리id', title: '제목', tag:'짧은태그',
+        body: `실제 프롬프트 전문(백틱 안에 줄바꿈 그대로 써도 됨)` }
+   4) 색상을 바꾸고 싶으면 :root 안의 --변수 값만 수정하면 전체 톤이 바뀝니다.
+   ============================================================ */
+
+:root{
+  --bg: #FDEBF1;
+  --paper: #FFF8FB;
+  --ink: #402232;
+  --ink-soft: #8C6478;
+  --chrome: #402232;
+  --accent: #FF6FA5;
+  --accent-2: #C792EA;
+  --accent-3: #FFC7DE;
+  --line: #402232;
+  --radius: 16px;
+  --shadow: 5px 5px 0 var(--chrome);
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(circle at 1px 1px, rgba(64,34,50,0.10) 1px, transparent 1px) 0 0/22px 22px,
+    var(--bg);
+  color:var(--ink);
+  font-family:'Space Grotesk','Pretendard',-apple-system,sans-serif;
+  min-height:100vh;
+  padding-bottom:80px;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; border-bottom:2px solid var(--line);
+  background:var(--paper);
+  position:sticky; top:0; z-index:50;
+}
+.brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:1.05rem;}
+.brand .dot{width:12px;height:12px;background:var(--accent);border:2px solid var(--line);border-radius:3px;display:inline-block;}
+.topbar-right{display:flex; gap:8px; align-items:center;}
+.chip{
+  font-family:'IBM Plex Mono',monospace; font-size:.72rem; padding:5px 10px;
+  border:2px solid var(--line); border-radius:20px; background:var(--paper);
+}
+.follow-btn{
+  font-family:'IBM Plex Mono',monospace; font-size:.75rem; font-weight:600;
+  padding:7px 14px; border:2px solid var(--line); border-radius:20px;
+  background:var(--accent-3); cursor:pointer;
+  box-shadow:3px 3px 0 var(--line);
+  transition:transform .15s ease;
+}
+.follow-btn:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);}
+
+/* ---------- hero window ---------- */
+.hero{max-width:920px; margin:36px auto 24px; padding:0 20px;}
+.window{
+  background:var(--paper); border:2px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.window-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 12px; border-bottom:2px solid var(--line);
+  background:repeating-linear-gradient(45deg, var(--paper) 0 8px, #FDD9E8 8px 16px);
+}
+.window-bar .path{font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft);}
+.traffic{display:flex; gap:6px;}
+.traffic span{width:11px;height:11px;border:1.5px solid var(--line);border-radius:50%;display:inline-block;}
+.traffic .r{background:var(--accent);} .traffic .y{background:var(--accent-3);} .traffic .g{background:var(--accent-2);}
+.hero-body{padding:30px 26px 26px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:.78rem; letter-spacing:.06em; color:var(--accent); font-weight:600;}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem); line-height:1.15; margin:10px 0 12px; font-weight:700;}
+.hero p{color:var(--ink-soft); font-size:.98rem; line-height:1.6; max-width:60ch;}
+.stat-row{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
+.stat{
+  font-family:'IBM Plex Mono',monospace; font-size:.78rem; border:2px solid var(--line);
+  border-radius:20px; padding:6px 12px; background:#fff;
+}
+
+/* ---------- category dock ---------- */
+.dock-wrap{max-width:920px; margin:0 auto; padding:0 20px;}
+.dock{
+  display:flex; gap:8px; flex-wrap:wrap; padding:14px 0;
+}
+.tab{
+  font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:500;
+  padding:8px 14px; border:2px solid var(--line); border-radius:10px;
+  background:var(--paper); cursor:pointer; user-select:none;
+  transition:background .15s ease, transform .1s ease;
+}
+.tab:hover{transform:translateY(-2px);}
+.tab.active{background:var(--ink); color:var(--paper);}
+
+/* ---------- grid ---------- */
+.grid{
+  max-width:920px; margin:6px auto 40px; padding:0 20px;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px;
+}
+.card{
+  background:var(--paper); border:2px solid var(--line); border-radius:var(--radius);
+  box-shadow:4px 4px 0 var(--line); display:flex; flex-direction:column;
+  transition:transform .15s ease, box-shadow .15s ease; overflow:hidden;
+}
+.card:hover{transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);}
+.card-top{
+  padding:10px 14px; border-bottom:2px solid var(--line);
+  display:flex; justify-content:space-between; align-items:center;
+  background:#FDD9E8;
+}
+.card-top .tag{font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; color:var(--ink-soft);}
+.card-body{padding:16px; flex:1; display:flex; flex-direction:column; gap:10px;}
+.card-body h3{font-size:1.02rem; font-weight:700; line-height:1.35;}
+.card-preview{
+  font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--ink-soft);
+  line-height:1.55; max-height:4.7em; overflow:hidden;
+}
+.copy-btn{
+  margin-top:auto; align-self:flex-start; font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem; font-weight:600; padding:8px 12px; border:2px solid var(--line);
+  border-radius:8px; background:var(--accent-2); color:#fff; cursor:pointer;
+}
+.copy-btn:active{transform:scale(.97);}
+.copy-btn.copied{background:var(--accent);}
+
+/* ---------- follow modal ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(22,36,28,.45);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:var(--paper); border:2px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); max-width:360px; width:100%; padding:22px;
+  position:relative;
+}
+.modal .close{position:absolute; top:10px; right:12px; cursor:pointer; font-family:'IBM Plex Mono',monospace; font-weight:700;}
+.modal h4{font-size:1.1rem; margin-bottom:12px;}
+.modal ul{list-style:none; display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+.modal li{font-size:.9rem; color:var(--ink-soft);}
+.modal a.cta{
+  display:inline-block; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:.85rem;
+  background:var(--accent-3); border:2px solid var(--line); border-radius:20px; padding:9px 16px;
+  color:var(--ink); text-decoration:none;
+}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:.8rem;
+  padding:10px 18px; border-radius:20px; opacity:0; pointer-events:none; transition:all .25s ease; z-index:200;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft); padding:20px;}
+
+@media (max-width:520px){
+  .topbar-right .chip{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> prompt_desk.exe</div>
+  <div class="topbar-right">
+    <span class="chip mono" id="countChip">📦 PROMPTS 0</span>
+    <button class="follow-btn" onclick="openModal()">✦ follow</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="window">
+    <div class="window-bar">
+      <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <div class="path mono">↻ prompt-desk/home</div>
+    </div>
+    <div class="hero-body">
+      <div class="eyebrow mono">FREE · COPY & PASTE</div>
+      <h1 id="siteTitle">쓰던 프롬프트, 여기 다 모아둠</h1>
+      <p id="siteDesc">직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.</p>
+      <div class="stat-row">
+        <span class="stat mono">🗂 카테고리 <span id="catCountStat">0</span></span>
+        <span class="stat mono">💸 0원</span>
+        <span class="stat mono">📋 1-클릭 복사</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dock-wrap">
+  <div class="dock" id="dock"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>© prompt_desk · 자유롭게 쓰되 무단 재판매 금지</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <span class="close" onclick="closeModal()">✕</span>
+    <h4>let's be friends! ✦</h4>
+    <ul>
+      <li>✨ 필요한 AI 정보만 골라서 큐레이션</li>
+      <li>✨ 새 프롬프트는 매주 업데이트</li>
+      <li>✨ 나답게 성장하는 루틴 공유</li>
+    </ul>
+    <a class="cta" href="#" id="followLink" target="_blank" rel="noopener">인스타 팔로우 하기</a>
+  </div>
+</div>
+
+<div class="toast" id="toast">copied! 붙여넣기만 하세요 ♥</div>
+
+<script>
+/* ============================================================
+   ✏️ SITE DATA — 여기서부터 자유롭게 수정하세요
+   ============================================================ */
+
+const SITE = {
+  title: "쓰던 프롬프트, 여기 다 모아둠",
+  desc: "직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.",
+  instagramUrl: "https://instagram.com/여기에_본인_계정"
+};
+
+// 카테고리(탭) 정의. id는 프롬프트의 cat 값과 반드시 일치해야 함
+const CATEGORIES = [
+  { id: "all",     label: "✦ ALL" },
+  { id: "content", label: "⌨️ 콘텐츠 제작" },
+  { id: "growth",  label: "📈 계정 성장" },
+  { id: "work",    label: "💼 회사 꿀템" },
+  { id: "money",   label: "💰 수익 & 미래" },
+  { id: "visual",  label: "🎨 영상·이미지" },
+  { id: "self",    label: "🔮 자기이해" },
+  { id: "routine", label: "🗓 루틴 & 회고" },
+  { id: "study",   label: "🧠 학습 & 정리" }
+];
+
+// 프롬프트 카드. 자유롭게 추가/삭제하세요. id는 겹치지 않게!
+const PROMPTS = [
+  {
+    id: 1, cat: "content", tag: "글쓰기",
+    title: "인스타 캡션 3종 세트 뽑기",
+    body: `아래 주제로 인스타그램 캡션을 3가지 톤(1.진솔한 톤 2.유머러스한 톤 3.정보성 톤)으로 각각 3~5문장씩 작성해줘.
+마지막엔 관련 해시태그 10개도 붙여줘.
+
+주제: [여기에 주제 입력]`
+  },
+  {
+    id: 2, cat: "growth", tag: "기획",
+    title: "다음 달 콘텐츠 캘린더 짜기",
+    body: `너는 SNS 그로스 전략가야. 내 계정 주제는 [주제]이고 타겟은 [타겟 설명]이야.
+다음 4주간 올릴 콘텐츠 주제를 요일별로 짜줘. 각 주제마다 후킹 포인트도 한 줄로 같이 적어줘.`
+  },
+  {
+    id: 3, cat: "work", tag: "이메일",
+    title: "칼같이 정중한 거절 메일",
+    body: `아래 요청을 정중하지만 분명하게 거절하는 이메일을 작성해줘. 관계는 해치지 않되 다시 요청하기 어렵게 톤을 잡아줘.
+
+요청 내용: [여기에 내용 입력]`
+  },
+  {
+    id: 4, cat: "money", tag: "부업",
+    title: "내 재능으로 수익화 아이디어 뽑기",
+    body: `나는 [보유 기술/경험]을 가지고 있어. 하루에 낼 수 있는 시간은 [시간]이야.
+지금 시장에서 바로 시도해볼 수 있는 수익화 아이디어 5가지를 난이도, 예상 소요기간과 함께 표로 정리해줘.`
+  },
+  {
+    id: 5, cat: "visual", tag: "이미지",
+    title: "제품 사진 배경 컨셉 브리핑",
+    body: `아래 제품을 위한 이미지 생성 프롬프트를 영어로 작성해줘. 배경 무드는 [무드]이고, 조명은 [조명]으로,
+카메라 앵글은 [앵글]로 지정해줘. 결과는 그대로 이미지 생성 모델에 붙여넣을 수 있게 한 문단으로 줘.
+
+제품: [제품 설명]`
+  },
+  {
+    id: 6, cat: "self", tag: "회고",
+    title: "이번 주 감정 정리 질문지",
+    body: `너는 다정하지만 예리한 코치야. 아래 답변을 보고 내가 놓치고 있는 패턴이나 반복되는 감정을 짚어줘.
+그리고 다음 주에 시도해볼만한 아주 작은 행동 1가지만 제안해줘.
+
+이번 주 답변: [자유롭게 작성]`
+  },
+  {
+    id: 7, cat: "routine", tag: "루틴",
+    title: "나만의 아침 루틴 설계",
+    body: `내 기상 시간은 [시간]이고 출근/작업 시작은 [시간]이야. 목표는 [목표, 예: 집중력 올리기]야.
+30분 안에 끝낼 수 있는 아침 루틴을 시간대별로 짜줘. 너무 이상적이지 않고 현실적으로.`
+  },
+  {
+    id: 8, cat: "study", tag: "정리",
+    title: "긴 자료 한 장 요약",
+    body: `아래 텍스트를 핵심 주장 → 근거 3가지 → 내가 적용할 수 있는 액션 1가지 순서로 정리해줘.
+전문 용어는 쉬운 말로 풀어서 설명해줘.
+
+텍스트: [여기에 붙여넣기]`
+  }
+];
+
+/* ============================================================
+   렌더링 로직 — 보통은 아래를 건드릴 필요 없어요
+   ============================================================ */
+
+let activeCat = "all";
+
+function renderDock(){
+  const dock = document.getElementById('dock');
+  dock.innerHTML = CATEGORIES.map(c =>
+    `<div class="tab ${c.id===activeCat?'active':''}" data-cat="${c.id}">${c.label}</div>`
+  ).join('');
+  dock.querySelectorAll('.tab').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      activeCat = el.dataset.cat;
+      renderDock();
+      renderGrid();
+    });
+  });
+}
+
+function catLabel(id){
+  const c = CATEGORIES.find(c=>c.id===id);
+  return c ? c.label.replace(/^[^\s]+\s/, '') : id;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const list = activeCat === 'all' ? PROMPTS : PROMPTS.filter(p=>p.cat===activeCat);
+  grid.innerHTML = list.map(p => `
+    <div class="card">
+      <div class="card-top">
+        <span class="tag mono">${catLabel(p.cat)}</span>
+        <span class="tag mono">#${p.tag}</span>
+      </div>
+      <div class="card-body">
+        <h3>${p.title}</h3>
+        <div class="card-preview mono">${p.body.slice(0,140).replace(/\n/g,' ')}${p.body.length>140?'…':''}</div>
+        <button class="copy-btn" data-id="${p.id}">📋 COPY PROMPT</button>
+      </div>
+    </div>
+  `).join('') || `<p class="mono" style="color:var(--ink-soft)">아직 이 카테고리엔 프롬프트가 없어요.</p>`;
+
+  grid.querySelectorAll('.copy-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = PROMPTS.find(p=>p.id==btn.dataset.id);
+      copyText(p.body).then(()=>{
+        btn.textContent = '✓ COPIED';
+        btn.classList.add('copied');
+        showToast();
+        setTimeout(()=>{ btn.textContent='📋 COPY PROMPT'; btn.classList.remove('copied'); }, 1800);
+      }).catch(()=>{
+        btn.textContent = '⚠️ 직접 선택해서 복사해주세요';
+        setTimeout(()=>{ btn.textContent='📋 COPY PROMPT'; }, 2200);
+      });
+    });
+  });
+}
+
+// navigator.clipboard가 막혀있는 환경(미리보기, 권한 미허용 iframe 등)을 대비한 폴백 복사 함수
+function copyText(text){
+  if (navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));
+  }
+  return fallbackCopy(text);
+}
+function fallbackCopy(text){
+  return new Promise((resolve, reject)=>{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? resolve() : reject();
+    }catch(err){
+      document.body.removeChild(ta);
+      reject(err);
+    }
+  });
+}
+
+function showToast(){
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function openModal(){ document.getElementById('overlay').classList.add('show'); }
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay').addEventListener('click', e=>{
+  if(e.target.id==='overlay') closeModal();
+});
+
+function init(){
+  document.getElementById('siteTitle').textContent = SITE.title;
+  document.getElementById('siteDesc').textContent = SITE.desc;
+  document.getElementById('followLink').href = SITE.instagramUrl;
+  document.getElementById('countChip').textContent = `📦 PROMPTS ${PROMPTS.length}`;
+  document.getElementById('catCountStat').textContent = CATEGORIES.length - 1;
+  renderDock();
+  renderGrid();
+}
+init();
+</script>
+</body>
+</html>
