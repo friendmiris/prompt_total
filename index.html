@@ -107,6 +107,34 @@ body{
 .tab:hover{transform:translateY(-2px);}
 .tab.active{background:var(--ink); color:var(--paper);}
 
+.dock-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.add-btn{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:.82rem;
+  padding:9px 16px; border:2px solid var(--line); border-radius:10px;
+  background:var(--accent); color:#fff; cursor:pointer;
+  box-shadow:3px 3px 0 var(--line); white-space:nowrap;
+  transition:transform .15s ease;
+}
+.add-btn:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);}
+
+.add-modal{max-width:420px; text-align:left;}
+.field-label{display:block; font-size:.72rem; font-weight:600; color:var(--ink-soft); margin:12px 0 5px;}
+.field-label:first-of-type{margin-top:4px;}
+.field-input{
+  width:100%; font-family:'Space Grotesk',sans-serif; font-size:.92rem;
+  padding:9px 10px; border:2px solid var(--line); border-radius:8px; background:#fff; color:var(--ink);
+}
+.field-textarea{min-height:110px; resize:vertical; font-family:'IBM Plex Mono',monospace; font-size:.82rem; line-height:1.5;}
+.save-btn{
+  margin-top:16px; width:100%; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:.88rem;
+  padding:10px; border:2px solid var(--line); border-radius:8px; background:var(--accent-3); cursor:pointer;
+}
+.card-del{
+  font-family:'IBM Plex Mono',monospace; font-size:.9rem; cursor:pointer; color:var(--ink-soft);
+  border:none; background:none; line-height:1;
+}
+.card-del:hover{color:var(--accent);}
+
 /* ---------- grid ---------- */
 .grid{
   max-width:920px; margin:6px auto 40px; padding:0 20px;
@@ -115,7 +143,7 @@ body{
 .card{
   background:var(--paper); border:2px solid var(--line); border-radius:var(--radius);
   box-shadow:4px 4px 0 var(--line); display:flex; flex-direction:column;
-  transition:transform .15s ease, box-shadow .15s ease; overflow:hidden;
+  transition:transform .15s ease, box-shadow .15s ease; overflow:hidden; cursor:pointer;
 }
 .card:hover{transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);}
 .card-top{
@@ -130,6 +158,16 @@ body{
   font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--ink-soft);
   line-height:1.55; max-height:4.7em; overflow:hidden;
 }
+.card-wg-row{display:flex; flex-wrap:wrap; gap:6px;}
+.card-wg{
+  display:flex; align-items:center; gap:6px; font-size:.72rem;
+  border:2px solid var(--line); border-radius:20px; padding:3px 4px 3px 3px; background:#fff;
+}
+.card-wg .wg-label{
+  font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:.62rem;
+  border-radius:14px; padding:2px 8px; background:var(--accent-3);
+}
+.card-wg .wg-text{color:var(--ink-soft); padding-right:4px;}
 .copy-btn{
   margin-top:auto; align-self:flex-start; font-family:'IBM Plex Mono',monospace;
   font-size:.78rem; font-weight:600; padding:8px 12px; border:2px solid var(--line);
@@ -158,6 +196,42 @@ body{
   background:var(--accent-3); border:2px solid var(--line); border-radius:20px; padding:9px 16px;
   color:var(--ink); text-decoration:none;
 }
+
+.detail-modal{max-width:640px; padding:0; overflow:hidden;}
+.detail-bar{display:flex; align-items:center; gap:10px;}
+.detail-bar .path{flex:1; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:5px 10px;}
+.detail-close{cursor:pointer;}
+.detail-inner{padding:22px 24px 26px;}
+.detail-title-input{
+  width:100%; border:none; background:none; font-family:'Space Grotesk',sans-serif;
+  font-size:1.3rem; font-weight:700; color:var(--ink); padding:2px 0;
+}
+.detail-title-input:focus{outline:none; border-bottom:2px dashed var(--accent);}
+.detail-desc-input{
+  width:100%; border:none; background:none; font-size:.92rem; color:var(--ink-soft);
+  margin-bottom:12px; padding:2px 0;
+}
+.detail-desc-input:focus{outline:none; border-bottom:2px dashed var(--accent-2);}
+.detail-chip-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.chip-label{
+  font-size:.68rem; font-weight:700; border:2px solid var(--line); border-radius:20px;
+  padding:4px 10px; background:var(--accent-3); flex-shrink:0;
+}
+.chip-input{
+  border:2px solid var(--line); border-radius:20px; padding:5px 12px; font-size:.78rem;
+  background:#fff; flex:1; min-width:120px;
+}
+.chip-input:focus{outline:none; border-color:var(--accent);}
+.detail-body{
+  width:100%; min-height:220px; background:var(--ink); color:#F3E9EF;
+  font-family:'IBM Plex Mono',monospace; font-size:.85rem; line-height:1.7;
+  border:2px solid var(--line); border-radius:10px; padding:16px; resize:vertical;
+}
+.detail-body:focus{outline:none; border-color:var(--accent);}
+.detail-actions{display:flex; gap:10px; margin-top:16px;}
+.detail-save{flex:0 0 120px; margin-top:0;}
+.detail-copy{flex:1; text-align:center; justify-content:center; padding:10px;}
+.detail-hint{text-align:center; color:var(--ink-soft); margin-top:12px;}
 
 /* ---------- toast ---------- */
 .toast{
@@ -204,7 +278,10 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
 </div>
 
 <div class="dock-wrap">
-  <div class="dock" id="dock"></div>
+  <div class="dock-row">
+    <div class="dock" id="dock"></div>
+    <button class="add-btn" onclick="openAddModal()">+ 새 프롬프트</button>
+  </div>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -221,6 +298,68 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
       <li>✨ 나답게 성장하는 루틴 공유</li>
     </ul>
     <a class="cta" href="#" id="followLink" target="_blank" rel="noopener">인스타 팔로우 하기</a>
+  </div>
+</div>
+
+<div class="overlay" id="addOverlay">
+  <div class="modal add-modal">
+    <span class="close" onclick="closeAddModal()">✕</span>
+    <h4>+ 새 프롬프트 추가</h4>
+    <form id="addForm">
+      <label class="field-label mono">카테고리</label>
+      <select id="f_cat" class="field-input"></select>
+
+      <label class="field-label mono">제목</label>
+      <input id="f_title" class="field-input" type="text" placeholder="예: 인스타 캡션 뽑기" required>
+
+      <label class="field-label mono">한 줄 설명 (선택)</label>
+      <input id="f_desc" class="field-input" type="text" placeholder="예: 캡션 3종을 한 번에 뽑아줌">
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label class="field-label mono">WHEN (선택)</label>
+          <input id="f_when" class="field-input" type="text" placeholder="예: 캡션 막막할 때">
+        </div>
+        <div style="flex:1;">
+          <label class="field-label mono">GET (선택)</label>
+          <input id="f_get" class="field-input" type="text" placeholder="예: 캡션 3종 세트">
+        </div>
+      </div>
+
+      <label class="field-label mono">태그 (짧게)</label>
+      <input id="f_tag" class="field-input" type="text" placeholder="예: 글쓰기" required>
+
+      <label class="field-label mono">프롬프트 내용</label>
+      <textarea id="f_body" class="field-input field-textarea" placeholder="실제 프롬프트 전문을 붙여넣으세요" required></textarea>
+
+      <button type="submit" class="save-btn">✦ 추가하기</button>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="detailOverlay">
+  <div class="modal detail-modal">
+    <div class="window-bar detail-bar">
+      <div class="traffic"><span class="r" onclick="closeDetailModal()" style="cursor:pointer;"></span><span class="y"></span><span class="g"></span></div>
+      <span class="path mono" id="d_path">↻ prompt-desk/detail</span>
+      <span class="close detail-close" onclick="closeDetailModal()">✕</span>
+    </div>
+    <div class="detail-inner">
+      <input id="d_title" class="detail-title-input" type="text">
+      <input id="d_desc" class="detail-desc-input" type="text" placeholder="한 줄 설명">
+      <div class="detail-chip-row">
+        <span class="chip-label mono">WHEN</span>
+        <input id="d_when" class="chip-input mono" type="text" placeholder="언제 쓰면 좋아요">
+        <span class="chip-label mono">GET</span>
+        <input id="d_get" class="chip-input mono" type="text" placeholder="뭘 얻어요">
+      </div>
+      <textarea id="d_body" class="detail-body"></textarea>
+      <div class="detail-actions">
+        <button class="save-btn detail-save" id="d_saveBtn">💾 저장</button>
+        <button class="copy-btn detail-copy" id="d_copyBtn">📋 COPY PROMPT</button>
+      </div>
+      <p class="detail-hint mono">복사한 뒤 쓰고 있는 GPT · 제미나이 · 클로드에 붙여넣으면 끝 ✦</p>
+    </div>
   </div>
 </div>
 
@@ -251,10 +390,14 @@ const CATEGORIES = [
 ];
 
 // 프롬프트 카드. 자유롭게 추가/삭제하세요. id는 겹치지 않게!
-const PROMPTS = [
+// desc: 카드 부제목 한 줄 / when: 언제 쓰면 좋은지 / get: 뭘 얻는지 — 다 선택 입력이에요
+const DEFAULT_PROMPTS = [
   {
     id: 1, cat: "content", tag: "글쓰기",
     title: "인스타 캡션 3종 세트 뽑기",
+    desc: "같은 주제로 톤 3가지, 해시태그까지 한 번에",
+    when: "캡션 쓰기 막막할 때",
+    get: "캡션 3종 + 해시태그 10개",
     body: `아래 주제로 인스타그램 캡션을 3가지 톤(1.진솔한 톤 2.유머러스한 톤 3.정보성 톤)으로 각각 3~5문장씩 작성해줘.
 마지막엔 관련 해시태그 10개도 붙여줘.
 
@@ -263,12 +406,18 @@ const PROMPTS = [
   {
     id: 2, cat: "growth", tag: "기획",
     title: "다음 달 콘텐츠 캘린더 짜기",
+    desc: "4주치 주제와 후킹 포인트를 한 번에 기획",
+    when: "다음 달 뭐 올릴지 안 잡힐 때",
+    get: "4주 콘텐츠 캘린더 + 후킹 포인트",
     body: `너는 SNS 그로스 전략가야. 내 계정 주제는 [주제]이고 타겟은 [타겟 설명]이야.
 다음 4주간 올릴 콘텐츠 주제를 요일별로 짜줘. 각 주제마다 후킹 포인트도 한 줄로 같이 적어줘.`
   },
   {
     id: 3, cat: "work", tag: "이메일",
     title: "칼같이 정중한 거절 메일",
+    desc: "관계는 지키면서 확실하게 선 긋는 메일",
+    when: "거절하기 애매한 요청 받았을 때",
+    get: "정중한 거절 이메일 초안",
     body: `아래 요청을 정중하지만 분명하게 거절하는 이메일을 작성해줘. 관계는 해치지 않되 다시 요청하기 어렵게 톤을 잡아줘.
 
 요청 내용: [여기에 내용 입력]`
@@ -276,12 +425,18 @@ const PROMPTS = [
   {
     id: 4, cat: "money", tag: "부업",
     title: "내 재능으로 수익화 아이디어 뽑기",
+    desc: "내 기술로 바로 시도할 수 있는 부업 아이디어",
+    when: "부수입 시작점이 안 보일 때",
+    get: "난이도·기간 포함 아이디어 5가지 표",
     body: `나는 [보유 기술/경험]을 가지고 있어. 하루에 낼 수 있는 시간은 [시간]이야.
 지금 시장에서 바로 시도해볼 수 있는 수익화 아이디어 5가지를 난이도, 예상 소요기간과 함께 표로 정리해줘.`
   },
   {
     id: 5, cat: "visual", tag: "이미지",
     title: "제품 사진 배경 컨셉 브리핑",
+    desc: "이미지 생성 모델에 바로 붙여넣는 영문 프롬프트",
+    when: "제품 이미지 배경 정하기 막막할 때",
+    get: "이미지 생성용 영문 프롬프트 한 문단",
     body: `아래 제품을 위한 이미지 생성 프롬프트를 영어로 작성해줘. 배경 무드는 [무드]이고, 조명은 [조명]으로,
 카메라 앵글은 [앵글]로 지정해줘. 결과는 그대로 이미지 생성 모델에 붙여넣을 수 있게 한 문단으로 줘.
 
@@ -290,6 +445,9 @@ const PROMPTS = [
   {
     id: 6, cat: "self", tag: "회고",
     title: "이번 주 감정 정리 질문지",
+    desc: "감정 패턴 짚어주고 다음 행동 1가지 제안",
+    when: "한 주 마무리하며 정리하고 싶을 때",
+    get: "패턴 분석 + 다음 주 액션 1가지",
     body: `너는 다정하지만 예리한 코치야. 아래 답변을 보고 내가 놓치고 있는 패턴이나 반복되는 감정을 짚어줘.
 그리고 다음 주에 시도해볼만한 아주 작은 행동 1가지만 제안해줘.
 
@@ -298,12 +456,18 @@ const PROMPTS = [
   {
     id: 7, cat: "routine", tag: "루틴",
     title: "나만의 아침 루틴 설계",
+    desc: "현실적인 30분 아침 루틴 시간표",
+    when: "아침이 늘 정신없이 지나갈 때",
+    get: "시간대별 아침 루틴표",
     body: `내 기상 시간은 [시간]이고 출근/작업 시작은 [시간]이야. 목표는 [목표, 예: 집중력 올리기]야.
 30분 안에 끝낼 수 있는 아침 루틴을 시간대별로 짜줘. 너무 이상적이지 않고 현실적으로.`
   },
   {
     id: 8, cat: "study", tag: "정리",
     title: "긴 자료 한 장 요약",
+    desc: "핵심 주장부터 실제 적용까지 한 장 정리",
+    when: "자료는 긴데 시간이 없을 때",
+    get: "주장·근거·액션 3단 요약",
     body: `아래 텍스트를 핵심 주장 → 근거 3가지 → 내가 적용할 수 있는 액션 1가지 순서로 정리해줘.
 전문 용어는 쉬운 말로 풀어서 설명해줘.
 
@@ -311,9 +475,42 @@ const PROMPTS = [
   }
 ];
 
+
 /* ============================================================
    렌더링 로직 — 보통은 아래를 건드릴 필요 없어요
    ============================================================ */
+
+const STORAGE_KEY = 'promptDeskCustomPrompts';
+const OVERRIDES_KEY = 'promptDeskOverrides';
+
+function loadCustomPrompts(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(err){ return []; }
+}
+function saveCustomPrompts(list){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(err){}
+}
+function loadOverrides(){
+  try{
+    const raw = localStorage.getItem(OVERRIDES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(err){ return {}; }
+}
+function saveOverrides(obj){
+  try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(obj)); }catch(err){}
+}
+
+let customPrompts = loadCustomPrompts();
+let overrides = loadOverrides();
+
+function buildPrompts(){
+  return [...DEFAULT_PROMPTS, ...customPrompts].map(p =>
+    overrides[p.id] ? { ...p, ...overrides[p.id] } : p
+  );
+}
+let PROMPTS = buildPrompts();
 
 let activeCat = "all";
 
@@ -340,21 +537,37 @@ function renderGrid(){
   const grid = document.getElementById('grid');
   const list = activeCat === 'all' ? PROMPTS : PROMPTS.filter(p=>p.cat===activeCat);
   grid.innerHTML = list.map(p => `
-    <div class="card">
+    <div class="card" data-id="${p.id}">
       <div class="card-top">
         <span class="tag mono">${catLabel(p.cat)}</span>
-        <span class="tag mono">#${p.tag}</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="tag mono">#${p.tag}</span>
+          ${p.custom ? `<button class="card-del" data-id="${p.id}" title="삭제">✕</button>` : ''}
+        </span>
       </div>
       <div class="card-body">
         <h3>${p.title}</h3>
+        ${(p.when || p.get) ? `
+        <div class="card-wg-row">
+          ${p.when ? `<span class="card-wg mono"><span class="wg-label">WHEN</span><span class="wg-text">${p.when}</span></span>` : ''}
+          ${p.get ? `<span class="card-wg mono"><span class="wg-label">GET</span><span class="wg-text">${p.get}</span></span>` : ''}
+        </div>` : ''}
         <div class="card-preview mono">${p.body.slice(0,140).replace(/\n/g,' ')}${p.body.length>140?'…':''}</div>
         <button class="copy-btn" data-id="${p.id}">📋 COPY PROMPT</button>
       </div>
     </div>
   `).join('') || `<p class="mono" style="color:var(--ink-soft)">아직 이 카테고리엔 프롬프트가 없어요.</p>`;
 
+  grid.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click', e=>{
+      if(e.target.closest('button')) return;
+      openDetail(Number(card.dataset.id));
+    });
+  });
+
   grid.querySelectorAll('.copy-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
       const p = PROMPTS.find(p=>p.id==btn.dataset.id);
       copyText(p.body).then(()=>{
         btn.textContent = '✓ COPIED';
@@ -367,6 +580,25 @@ function renderGrid(){
       });
     });
   });
+
+  grid.querySelectorAll('.card-del').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(!confirm('이 프롬프트를 삭제할까요?')) return;
+      const id = Number(btn.dataset.id);
+      customPrompts = customPrompts.filter(p=>p.id!==id);
+      delete overrides[id];
+      saveCustomPrompts(customPrompts);
+      saveOverrides(overrides);
+      PROMPTS = buildPrompts();
+      updateCountChip();
+      renderGrid();
+    });
+  });
+}
+
+function updateCountChip(){
+  document.getElementById('countChip').textContent = `📦 PROMPTS ${PROMPTS.length}`;
 }
 
 // navigator.clipboard가 막혀있는 환경(미리보기, 권한 미허용 iframe 등)을 대비한 폴백 복사 함수
@@ -396,11 +628,15 @@ function fallbackCopy(text){
   });
 }
 
-function showToast(){
+function showToast(msg){
   const t = document.getElementById('toast');
+  if(msg) t.textContent = msg;
   t.classList.add('show');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+  window._toastTimer = setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(()=>{ t.textContent = 'copied! 붙여넣기만 하세요 ♥'; }, 300);
+  }, 1800);
 }
 
 function openModal(){ document.getElementById('overlay').classList.add('show'); }
@@ -409,11 +645,97 @@ document.getElementById('overlay').addEventListener('click', e=>{
   if(e.target.id==='overlay') closeModal();
 });
 
+function openAddModal(){
+  const sel = document.getElementById('f_cat');
+  sel.innerHTML = CATEGORIES.filter(c=>c.id!=='all')
+    .map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+  document.getElementById('addOverlay').classList.add('show');
+}
+function closeAddModal(){ document.getElementById('addOverlay').classList.remove('show'); }
+document.getElementById('addOverlay').addEventListener('click', e=>{
+  if(e.target.id==='addOverlay') closeAddModal();
+});
+
+document.getElementById('addForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const newPrompt = {
+    id: Date.now(),
+    cat: document.getElementById('f_cat').value,
+    tag: document.getElementById('f_tag').value.trim() || '내프롬프트',
+    title: document.getElementById('f_title').value.trim() || '제목 없음',
+    desc: document.getElementById('f_desc').value.trim(),
+    when: document.getElementById('f_when').value.trim(),
+    get: document.getElementById('f_get').value.trim(),
+    body: document.getElementById('f_body').value,
+    custom: true
+  };
+  customPrompts.push(newPrompt);
+  saveCustomPrompts(customPrompts);
+  PROMPTS = buildPrompts();
+  updateCountChip();
+  e.target.reset();
+  closeAddModal();
+  activeCat = newPrompt.cat;
+  renderDock();
+  renderGrid();
+  showToast('추가됐어요! ♥');
+});
+
+/* ---------- 상세 보기 / 수정 모달 ---------- */
+let currentDetailId = null;
+
+function openDetail(id){
+  const p = PROMPTS.find(p=>p.id===id);
+  if(!p) return;
+  currentDetailId = id;
+  document.getElementById('d_path').textContent = `↻ prompt-desk/detail/${p.tag || 'prompt'}`;
+  document.getElementById('d_title').value = p.title || '';
+  document.getElementById('d_desc').value = p.desc || '';
+  document.getElementById('d_when').value = p.when || '';
+  document.getElementById('d_get').value = p.get || '';
+  document.getElementById('d_body').value = p.body || '';
+  document.getElementById('detailOverlay').classList.add('show');
+}
+function closeDetailModal(){
+  document.getElementById('detailOverlay').classList.remove('show');
+  currentDetailId = null;
+}
+document.getElementById('detailOverlay').addEventListener('click', e=>{
+  if(e.target.id==='detailOverlay') closeDetailModal();
+});
+
+document.getElementById('d_saveBtn').addEventListener('click', ()=>{
+  if(currentDetailId==null) return;
+  overrides[currentDetailId] = {
+    title: document.getElementById('d_title').value.trim() || '제목 없음',
+    desc: document.getElementById('d_desc').value.trim(),
+    when: document.getElementById('d_when').value.trim(),
+    get: document.getElementById('d_get').value.trim(),
+    body: document.getElementById('d_body').value
+  };
+  saveOverrides(overrides);
+  PROMPTS = buildPrompts();
+  renderGrid();
+  showToast('저장됐어요! ♥');
+});
+
+document.getElementById('d_copyBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('d_copyBtn');
+  copyText(document.getElementById('d_body').value).then(()=>{
+    btn.textContent = '✓ COPIED';
+    showToast();
+    setTimeout(()=>{ btn.textContent='📋 COPY PROMPT'; }, 1800);
+  }).catch(()=>{
+    btn.textContent = '⚠️ 직접 선택해서 복사해주세요';
+    setTimeout(()=>{ btn.textContent='📋 COPY PROMPT'; }, 2200);
+  });
+});
+
 function init(){
   document.getElementById('siteTitle').textContent = SITE.title;
   document.getElementById('siteDesc').textContent = SITE.desc;
   document.getElementById('followLink').href = SITE.instagramUrl;
-  document.getElementById('countChip').textContent = `📦 PROMPTS ${PROMPTS.length}`;
+  updateCountChip();
   document.getElementById('catCountStat').textContent = CATEGORIES.length - 1;
   renderDock();
   renderGrid();
