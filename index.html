@@ -67,6 +67,7 @@ body{
   transition:transform .15s ease;
 }
 .follow-btn:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);}
+.sync-btn{background:var(--accent-2); color:#fff;}
 
 /* ---------- hero window ---------- */
 .hero{max-width:920px; margin:36px auto 24px; padding:0 20px;}
@@ -118,6 +119,11 @@ body{
 .add-btn:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);}
 
 .add-modal{max-width:420px; text-align:left;}
+.sync-desc{font-size:.85rem; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;}
+.sync-code{min-height:70px; font-size:.75rem; word-break:break-all;}
+.sync-hint{font-size:.7rem; color:var(--ink-soft); margin-top:8px; text-align:center;}
+.sync-divider{border:none; border-top:2px dashed var(--line); opacity:.35; margin:22px 0;}
+.auth-msg{font-size:.75rem; min-height:1.2em; margin-top:8px; color:var(--accent);}
 .field-label{display:block; font-size:.72rem; font-weight:600; color:var(--ink-soft); margin:12px 0 5px;}
 .field-label:first-of-type{margin-top:4px;}
 .field-input{
@@ -134,6 +140,12 @@ body{
   border:none; background:none; line-height:1;
 }
 .card-del:hover{color:var(--accent);}
+.fav-btn{
+  font-size:1.05rem; cursor:pointer; border:none; background:none; line-height:1;
+  color:var(--ink-soft); padding:0;
+}
+.fav-btn.active{color:var(--accent-3); text-shadow:0 0 0 var(--line);}
+.tab.fav-tab.active{background:var(--accent-3); color:var(--ink);}
 
 /* ---------- grid ---------- */
 .grid{
@@ -228,7 +240,8 @@ body{
   border:2px solid var(--line); border-radius:10px; padding:16px; resize:vertical;
 }
 .detail-body:focus{outline:none; border-color:var(--accent);}
-.detail-actions{display:flex; gap:10px; margin-top:16px;}
+.detail-actions{display:flex; gap:10px; margin-top:16px; align-items:center;}
+.detail-fav{font-size:1.6rem; flex:0 0 auto;}
 .detail-save{flex:0 0 120px; margin-top:0;}
 .detail-copy{flex:1; text-align:center; justify-content:center; padding:10px;}
 .detail-hint{text-align:center; color:var(--ink-soft); margin-top:12px;}
@@ -254,6 +267,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
   <div class="brand"><span class="dot"></span> prompt_desk.exe</div>
   <div class="topbar-right">
     <span class="chip mono" id="countChip">📦 PROMPTS 0</span>
+    <button class="follow-btn sync-btn" onclick="openSyncModal()">🔗 즐겨찾기 동기화</button>
     <button class="follow-btn" onclick="openModal()">✦ follow</button>
   </div>
 </div>
@@ -270,7 +284,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
       <p id="siteDesc">직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.</p>
       <div class="stat-row">
         <span class="stat mono">🗂 카테고리 <span id="catCountStat">0</span></span>
-        <span class="stat mono">💸 0원</span>
+        <span class="stat mono">⭐ 즐겨찾기 <span id="favCountStat">0</span></span>
         <span class="stat mono">📋 1-클릭 복사</span>
       </div>
     </div>
@@ -298,6 +312,45 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
       <li>✨ 나답게 성장하는 루틴 공유</li>
     </ul>
     <a class="cta" href="#" id="followLink" target="_blank" rel="noopener">인스타 팔로우 하기</a>
+  </div>
+</div>
+
+<div class="overlay" id="syncOverlay">
+  <div class="modal add-modal">
+    <span class="close" onclick="closeSyncModal()">✕</span>
+    <h4>🔗 즐겨찾기 동기화</h4>
+
+    <!-- 로그인 전 -->
+    <div id="authLoggedOut">
+      <p class="sync-desc">로그인하면 즐겨찾기가 클라우드에 저장돼서, 어느 기기에서 열어도 실시간으로 똑같이 보여요.</p>
+      <label class="field-label mono">이메일</label>
+      <input id="auth_email" class="field-input" type="email" placeholder="you@example.com">
+      <label class="field-label mono">비밀번호</label>
+      <input id="auth_pw" class="field-input" type="password" placeholder="6자 이상">
+      <p class="auth-msg mono" id="authMsg"></p>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="save-btn" id="signInBtn" style="flex:1;">로그인</button>
+        <button type="button" class="save-btn" id="signUpBtn" style="flex:1; background:var(--accent-2); color:#fff;">회원가입</button>
+      </div>
+    </div>
+
+    <!-- 로그인 후 -->
+    <div id="authLoggedIn" style="display:none;">
+      <p class="sync-desc">👋 <span id="authEmail"></span> 님으로 로그인됨 — 즐겨찾기가 실시간으로 저장/동기화되고 있어요.</p>
+      <button type="button" class="save-btn" id="signOutBtn" style="background:var(--ink); color:var(--paper);">로그아웃</button>
+    </div>
+
+    <hr class="sync-divider">
+
+    <p class="sync-desc" style="margin-bottom:8px;">또는, 로그인 없이 코드로 임시 동기화하기</p>
+    <label class="field-label mono">① 내 코드 (이 기기의 즐겨찾기)</label>
+    <textarea id="syncMyCode" class="field-input field-textarea sync-code" readonly></textarea>
+    <button type="button" class="save-btn" id="syncCopyBtn">📋 코드 복사</button>
+
+    <label class="field-label mono" style="margin-top:20px;">② 다른 기기에서 받은 코드 붙여넣기</label>
+    <textarea id="syncInput" class="field-input field-textarea sync-code" placeholder="여기에 코드를 붙여넣으세요"></textarea>
+    <button type="button" class="save-btn" id="syncLoadBtn" style="background:var(--accent-2); color:#fff;">⬇️ 이 코드로 불러오기</button>
+    <p class="sync-hint mono">불러오면 기존 즐겨찾기와 합쳐져요(덮어쓰지 않음)</p>
   </div>
 </div>
 
@@ -355,6 +408,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
       </div>
       <textarea id="d_body" class="detail-body"></textarea>
       <div class="detail-actions">
+        <button class="fav-btn detail-fav" id="d_favBtn" title="즐겨찾기">☆</button>
         <button class="save-btn detail-save" id="d_saveBtn">💾 저장</button>
         <button class="copy-btn detail-copy" id="d_copyBtn">📋 COPY PROMPT</button>
       </div>
@@ -365,6 +419,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
 
 <div class="toast" id="toast">copied! 붙여넣기만 하세요 ♥</div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ============================================================
    ✏️ SITE DATA — 여기서부터 자유롭게 수정하세요
@@ -375,6 +430,13 @@ const SITE = {
   desc: "직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.",
   instagramUrl: "https://instagram.com/여기에_본인_계정"
 };
+
+// 즐겨찾기 실시간 동기화용 Supabase 프로젝트 정보 (공개해도 되는 키예요)
+const SUPABASE_URL = "https://tclihvxohptjnscwfdxh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_BKJfVpI2T2CRs3Afz47Hxg_MKkW3r8I";
+const sbClient = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 // 카테고리(탭) 정의. id는 프롬프트의 cat 값과 반드시 일치해야 함
 const CATEGORIES = [
@@ -472,6 +534,275 @@ const DEFAULT_PROMPTS = [
 전문 용어는 쉬운 말로 풀어서 설명해줘.
 
 텍스트: [여기에 붙여넣기]`
+  },
+  {
+    id: 9, cat: "content", tag: "숏폼",
+    title: "숏폼 대본 뼈대 짜기",
+    desc: "훅-본론-CTA 3단 구조로 15~30초 대본 초안",
+    when: "숏폼 대본이 안 써질 때",
+    get: "훅 문장 3개 + 본론 흐름 + 마무리 CTA",
+    body: `너는 숏폼 콘텐츠 작가야. 아래 주제로 15~30초 분량 숏폼 대본을 짜줘.
+구조는 [1) 3초 안에 시선 끄는 훅 3가지 후보 2) 본론 핵심 메시지 흐름 3) 마지막 행동유도 문구] 순서로.
+말투는 [톤, 예: 친근한 반말/정중한 존댓말]로 맞춰줘.
+
+주제: [여기에 주제 입력]`
+  },
+  {
+    id: 10, cat: "content", tag: "SEO",
+    title: "블로그 제목 후보 10개",
+    desc: "클릭률 높은 제목과 검색 키워드 후보를 한 번에",
+    when: "포스팅 제목이 밋밋하게 느껴질 때",
+    get: "제목 10개 + 각 제목이 겨냥하는 키워드",
+    body: `아래 글 주제로 검색엔진에도 잘 걸리고 클릭하고 싶어지는 블로그 제목을 10개 뽑아줘.
+각 제목 옆에 그 제목이 타겟하는 검색 키워드를 괄호로 같이 적어줘. 너무 낚시성으로 과장하지는 말아줘.
+
+글 주제: [여기에 주제 입력]
+타겟 독자: [여기에 독자 설명]`
+  },
+  {
+    id: 11, cat: "content", tag: "카드뉴스",
+    title: "카드뉴스 10장 스토리라인",
+    desc: "한 장씩 뭘 넣을지 스토리 흐름으로 미리 설계",
+    when: "카드뉴스 몇 장으로 나눠야 할지 감이 안 잡힐 때",
+    get: "10장 구성표 (장별 핵심 문구 포함)",
+    body: `아래 주제로 인스타그램 카드뉴스 10장 구성을 짜줘.
+1장은 후킹, 2~9장은 핵심 정보를 논리적 순서로, 10장은 요약+행동유도로 짜고,
+각 장마다 들어갈 핵심 문구를 한 줄씩 적어줘. 표 형식으로 정리해줘.
+
+주제: [여기에 주제 입력]`
+  },
+  {
+    id: 12, cat: "growth", tag: "진단",
+    title: "팔로워 이탈 원인 진단",
+    desc: "최근 지표를 붙여넣으면 원인 후보와 개선안 도출",
+    when: "팔로워가 늘지 않거나 줄고 있을 때",
+    get: "원인 후보 3가지 + 각각에 대한 개선 액션",
+    body: `너는 SNS 그로스 컨설턴트야. 아래는 내 최근 계정 지표야.
+이 데이터를 보고 팔로워 정체/이탈의 원인 후보를 3가지로 추려주고, 각 원인마다 바로 시도할 수 있는 개선 액션을 1개씩 제안해줘.
+
+계정 주제: [주제]
+최근 지표: [팔로워 수 변화, 도달, 저장, 댓글 등 붙여넣기]`
+  },
+  {
+    id: 13, cat: "growth", tag: "프로필",
+    title: "프로필 소개글 후킹 버전",
+    desc: "지금 소개글을 더 눈에 띄게 다듬은 3가지 버전",
+    when: "프로필 소개글이 밋밋하게 느껴질 때",
+    get: "톤이 다른 소개글 3버전 + 각각의 장단점",
+    body: `아래는 내 현재 SNS 프로필 소개글이야. 이걸 더 매력적으로 다듬어서 3가지 버전으로 제안해줘.
+(1) 전문성 강조 버전 (2) 친근함 강조 버전 (3) 임팩트 있는 한 줄 버전.
+각 버전 아래에 이 버전이 어떤 타겟에게 더 잘 맞을지 한 줄로 설명해줘.
+
+현재 소개글: [여기에 붙여넣기]`
+  },
+  {
+    id: 14, cat: "growth", tag: "협업",
+    title: "콜라보 제안 DM 초안",
+    desc: "부담스럽지 않으면서 매력적인 협업 제안 메시지",
+    when: "협업하고 싶은 계정에 DM 보내야 할 때",
+    get: "정중하고 구체적인 DM 초안 1개",
+    body: `아래 내 계정과 상대 계정 정보를 참고해서, 협업을 제안하는 인스타그램 DM을 작성해줘.
+너무 격식 차리지 않으면서도 신뢰가 가게, 그리고 상대가 얻을 이득이 명확하게 드러나도록 써줘. 5문장 이내로.
+
+내 계정: [내 계정 소개]
+상대 계정: [상대 계정 소개]
+제안하고 싶은 협업 형태: [예: 상호 피드 교환, 공동 콘텐츠 제작 등]`
+  },
+  {
+    id: 15, cat: "work", tag: "회의",
+    title: "회의록 핵심만 정리",
+    desc: "긴 회의 내용을 결정사항·액션아이템 중심으로 요약",
+    when: "회의 끝나고 회의록 정리가 막막할 때",
+    get: "결정사항 / 담당자별 액션아이템 / 다음 회의 안건",
+    body: `아래 회의 내용을 다음 형식으로 정리해줘.
+1) 주요 결정사항 (불릿) 2) 담당자별 액션아이템 (담당자 - 할 일 - 기한) 3) 다음 회의에서 다뤄야 할 안건.
+불필요한 잡담이나 반복된 내용은 빼줘.
+
+회의 내용: [여기에 붙여넣기]`
+  },
+  {
+    id: 16, cat: "work", tag: "보고",
+    title: "주간 업무 보고 정리",
+    desc: "이번 주 한 일을 상사에게 보고하기 좋은 형태로",
+    when: "주간 보고 쓰기 귀찮을 때",
+    get: "완료/진행중/이슈 3단 구조 보고 초안",
+    body: `아래 이번 주 업무 내용을 상사에게 보고하기 좋은 형태로 정리해줘.
+구조는 [완료한 일 / 진행중인 일과 진척도 / 막힌 이슈와 필요한 도움] 순서로, 각 항목은 한 줄로 간결하게.
+
+이번 주 한 일: [자유롭게 나열]`
+  },
+  {
+    id: 17, cat: "work", tag: "온보딩",
+    title: "신입 온보딩 체크리스트",
+    desc: "팀에 새로 합류한 사람을 위한 첫 2주 체크리스트",
+    when: "신입/신규 팀원 맞이할 준비할 때",
+    get: "1~2주차 일자별 체크리스트",
+    body: `우리 팀에 새로 합류하는 [직무]를 위한 온보딩 체크리스트를 짜줘.
+1주차는 적응과 파악 위주, 2주차는 실제 작업 참여 위주로 구성하고, 일자별로 나눠서 표로 정리해줘.
+
+팀/업무 소개: [간단히 설명]`
+  },
+  {
+    id: 18, cat: "money", tag: "점검",
+    title: "사이드 프로젝트 수익 모델 점검",
+    desc: "지금 하는 부업/프로젝트의 수익화 지점을 다시 점검",
+    when: "부업은 하는데 수익화가 애매할 때",
+    get: "현재 모델 진단 + 개선 아이디어 3가지",
+    body: `아래는 내가 하고 있는 사이드 프로젝트 설명이야. 지금 수익 구조를 진단하고,
+바로 적용할 수 있는 수익화 개선 아이디어를 3가지 제안해줘. 각 아이디어에 예상 난이도도 같이 적어줘.
+
+프로젝트 설명: [여기에 설명]
+현재 수익 구조: [현재 어떻게 돈을 버는지, 없다면 '없음']`
+  },
+  {
+    id: 19, cat: "money", tag: "견적",
+    title: "프리랜서 견적서 문구 다듬기",
+    desc: "가격 협상에서 밀리지 않는 견적서 문구로 정리",
+    when: "견적서 보내기 전 문구가 애매할 때",
+    get: "다듬어진 견적 설명 문단 + 협상 대응 팁 1개",
+    body: `아래 내 작업 범위와 가격을 바탕으로, 클라이언트에게 보낼 견적 설명 문구를 전문적이면서 자신감 있게 다듬어줘.
+그리고 만약 가격을 깎아달라는 요청이 오면 어떻게 대응하면 좋을지 팁도 1개 알려줘.
+
+작업 범위: [여기에 작업 내용]
+제시 가격: [금액]`
+  },
+  {
+    id: 20, cat: "money", tag: "투자",
+    title: "투자 전 리스크 체크리스트",
+    desc: "감정적으로 결정하기 전에 짚어볼 질문 리스트",
+    when: "투자 결정을 감정적으로 내릴 것 같을 때",
+    get: "점검 질문 7개 + 위험 신호 3가지",
+    body: `나는 [투자 대상]에 투자를 고민하고 있어. 감정적인 결정을 내리기 전에 스스로 점검해야 할 질문을 7개 뽑아줘.
+그리고 이런 투자에서 흔히 나타나는 위험 신호(레드플래그) 3가지도 알려줘. 특정 투자 추천은 하지 말고 점검 질문 위주로.
+
+투자 대상/상황: [여기에 설명]`
+  },
+  {
+    id: 21, cat: "visual", tag: "카피",
+    title: "릴스 커버 후킹 카피",
+    desc: "썸네일에 들어갈 짧고 강한 문구 후보 뽑기",
+    when: "릴스 커버 문구가 안 떠오를 때",
+    get: "커버용 짧은 카피 5개",
+    body: `아래 릴스 주제로 썸네일(커버)에 들어갈 아주 짧고 임팩트 있는 문구를 5개 뽑아줘.
+각 문구는 10자 이내로, 궁금증을 유발하거나 공감을 사는 톤으로 써줘.
+
+릴스 주제: [여기에 주제 입력]`
+  },
+  {
+    id: 22, cat: "visual", tag: "로고",
+    title: "로고 컨셉 브리핑 영문 프롬프트",
+    desc: "이미지 생성 모델에 바로 넣는 로고 컨셉 문단",
+    when: "로고 이미지 시안을 뽑아보고 싶을 때",
+    get: "영문 이미지 생성 프롬프트 한 문단",
+    body: `아래 브랜드를 위한 로고 이미지 생성 프롬프트를 영어로 작성해줘.
+스타일은 [스타일, 예: 미니멀/레트로/필기체]이고, 주요 색상은 [색상]으로,
+심볼 아이디어는 [아이디어]를 참고해줘. 결과는 그대로 이미지 생성 모델에 붙여넣을 수 있게 한 문단으로 줘.
+
+브랜드 설명: [브랜드/서비스 소개]`
+  },
+  {
+    id: 23, cat: "visual", tag: "무드보드",
+    title: "브랜드 무드보드 키워드",
+    desc: "톤앤매너를 정할 때 참고할 키워드와 색상 뽑기",
+    when: "브랜드 톤앤매너가 아직 안 잡혔을 때",
+    get: "무드 키워드 8개 + 추천 색상 팔레트",
+    body: `아래 브랜드 설명을 보고 이 브랜드에 어울리는 무드보드 키워드 8개(형용사 위주)를 뽑아주고,
+어울리는 색상 팔레트 4~5개 색을 헥스코드와 함께 제안해줘.
+
+브랜드 설명: [브랜드/서비스 소개, 타겟 고객 포함]`
+  },
+  {
+    id: 24, cat: "self", tag: "번아웃",
+    title: "번아웃 신호 체크",
+    desc: "지금 상태를 객관적으로 점검해볼 수 있는 질문지",
+    when: "요즘 유독 지치고 무기력하게 느껴질 때",
+    get: "체크 질문 8개 + 결과 해석 가이드",
+    body: `아래 항목들에 대해 최근 2주간 내 상태를 스스로 점검해볼 수 있는 질문 8개를 만들어줘.
+수면, 의욕, 감정 기복, 일에 대한 냉소감 등을 다뤄줘. 질문에 답한 뒤 패턴을 어떻게 해석하면 좋을지 간단한 가이드도 덧붙여줘.
+(이건 의학적 진단이 아니라 자가 점검용이라는 점도 답변에 명시해줘)`
+  },
+  {
+    id: 25, cat: "self", tag: "강점",
+    title: "내 강점 3가지 찾기",
+    desc: "경험을 나열하면 반복되는 강점 패턴을 짚어줌",
+    when: "내 강점이 뭔지 헷갈릴 때",
+    get: "강점 3가지 + 각 강점을 뒷받침하는 근거",
+    body: `아래는 내가 최근에 잘 해냈다고 느낀 경험들이야. 이 경험들을 보고 반복적으로 나타나는 내 강점 3가지를 뽑아줘.
+각 강점마다 어떤 경험에서 그게 드러났는지 근거도 함께 짚어줘.
+
+최근 잘 해낸 경험들: [자유롭게 나열, 3개 이상]`
+  },
+  {
+    id: 26, cat: "self", tag: "우선순위",
+    title: "인생 목표 우선순위 정리",
+    desc: "여러 목표 중 지금 집중할 1~2개를 고르도록 도와줌",
+    when: "하고 싶은 게 너무 많아서 다 못 챙길 때",
+    get: "목표별 중요도/시급성 매트릭스 + 추천 우선순위",
+    body: `아래는 내가 지금 갖고 있는 목표들이야. 각 목표를 중요도와 시급성 기준으로 나눠서 매트릭스로 정리해주고,
+지금 시점에서 우선적으로 집중하면 좋을 목표 1~2개를 추천해줘. 이유도 함께 설명해줘.
+
+목표 목록: [자유롭게 나열]`
+  },
+  {
+    id: 27, cat: "routine", tag: "저녁",
+    title: "저녁 루틴 리셋",
+    desc: "늘어지는 저녁 시간을 다시 설계",
+    when: "퇴근/하교 후 시간이 늘 흐지부지 흘러갈 때",
+    get: "시간대별 저녁 루틴표",
+    body: `내 퇴근/하교 시간은 [시간]이고 취침 시간은 [시간]이야. 이 사이 시간을 알차게 쓰고 싶어.
+너무 빡빡하지 않게, 휴식과 생산적인 활동이 균형 잡힌 저녁 루틴을 시간대별로 짜줘. 목표는 [목표, 예: 운동 습관 만들기]야.`
+  },
+  {
+    id: 28, cat: "routine", tag: "회고",
+    title: "주간 회고 템플릿",
+    desc: "매주 일정한 틀로 돌아보는 회고 양식",
+    when: "매주 회고를 뭘 어떻게 써야 할지 막막할 때",
+    get: "채워 넣기만 하면 되는 회고 질문 템플릿",
+    body: `매주 일요일마다 쓸 수 있는 회고 템플릿을 만들어줘. 다음 항목이 포함되면 좋겠어:
+이번 주 잘한 것 / 아쉬웠던 것 / 배운 것 / 다음 주에 다르게 해볼 것.
+각 항목마다 답하기 쉽게 짧은 유도 질문도 하나씩 붙여줘.`
+  },
+  {
+    id: 29, cat: "routine", tag: "디톡스",
+    title: "디지털 디톡스 하루 계획",
+    desc: "스마트폰 사용을 줄이는 현실적인 하루 계획",
+    when: "스마트폰을 너무 오래 붙잡고 있다고 느낄 때",
+    get: "시간대별 디지털 디톡스 계획 + 대체 활동",
+    body: `주말 하루 동안 스마트폰 사용을 최소화하는 디지털 디톡스 계획을 짜줘.
+꼭 필요한 연락/업무는 남겨두고, 스마트폰 대신 할 수 있는 대체 활동을 시간대별로 제안해줘. 너무 극단적이지 않게, 현실적으로.`
+  },
+  {
+    id: 30, cat: "study", tag: "속독",
+    title: "긴 아티클 빠르게 스캔하기",
+    desc: "전체를 안 읽어도 핵심을 파악하는 요청 방식",
+    when: "읽어야 할 자료는 많은데 시간이 없을 때",
+    get: "5분 안에 핵심을 파악하는 스캔 요약",
+    body: `아래 글을 다 읽지 않아도 핵심을 파악할 수 있게, 다음 순서로 요약해줘.
+1) 이 글이 다루는 문제 2) 저자의 핵심 주장 3) 이 주장을 뒷받침하는 근거 2가지 4) 이 글을 읽어야 하는 사람 유형.
+
+글: [여기에 붙여넣기]`
+  },
+  {
+    id: 31, cat: "study", tag: "개념이해",
+    title: "새 개념 5분 안에 이해하기",
+    desc: "낯선 개념을 비유와 예시로 쉽게 풀어서 설명",
+    when: "낯선 개념이 나와서 진도가 안 나갈 때",
+    get: "쉬운 설명 + 비유 1개 + 확인 질문 1개",
+    body: `[개념 이름]이라는 개념을 나처럼 이 분야를 잘 모르는 사람도 이해할 수 있게 쉬운 말로 설명해줘.
+일상적인 비유를 하나 들어서 설명하고, 마지막에 내가 제대로 이해했는지 확인할 수 있는 질문을 1개 던져줘.
+
+내 배경지식 수준: [예: 완전 처음 접함 / 조금은 알고 있음]`
+  },
+  {
+    id: 32, cat: "study", tag: "노트",
+    title: "학습 노트 정리 템플릿",
+    desc: "강의/책 내용을 나중에 다시 봐도 이해되게 정리",
+    when: "노트 정리를 했는데 나중에 다시 보면 이해가 안 될 때",
+    get: "핵심개념/예시/헷갈렸던 점 3단 템플릿",
+    body: `아래 강의/책 내용을 나중에 다시 봐도 바로 이해할 수 있는 학습 노트 형태로 정리해줘.
+구조는 [핵심 개념 정리 / 이해를 도운 예시 / 처음에 헷갈렸던 부분과 왜 헷갈렸는지] 순서로.
+
+내용: [여기에 붙여넣기]`
   }
 ];
 
@@ -482,6 +813,7 @@ const DEFAULT_PROMPTS = [
 
 const STORAGE_KEY = 'promptDeskCustomPrompts';
 const OVERRIDES_KEY = 'promptDeskOverrides';
+const FAV_KEY = 'promptDeskFavorites';
 
 function loadCustomPrompts(){
   try{
@@ -501,9 +833,121 @@ function loadOverrides(){
 function saveOverrides(obj){
   try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(obj)); }catch(err){}
 }
+function loadFavorites(){
+  try{
+    const raw = localStorage.getItem(FAV_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  }catch(err){ return new Set(); }
+}
+function saveFavorites(set){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify([...set])); }catch(err){}
+}
+
+/* ---------- 로그인 + 실시간 즐겨찾기 동기화 (Supabase) ---------- */
+let currentUser = null;      // { id, email } | null
+let realtimeChannel = null;
+
+function persistFavorites(){
+  saveFavorites(favorites);       // 이 브라우저(오프라인 백업)
+  if(currentUser) pushFavoritesToCloud(); // 로그인 중이면 클라우드에도 저장
+}
+
+async function pushFavoritesToCloud(){
+  if(!sbClient || !currentUser) return;
+  await sbClient.from('user_favorites').upsert({
+    user_id: currentUser.id,
+    favorites: [...favorites],
+    updated_at: new Date().toISOString()
+  });
+}
+
+async function pullFavoritesFromCloud(){
+  if(!sbClient || !currentUser) return;
+  const { data, error } = await sbClient
+    .from('user_favorites')
+    .select('favorites')
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+  if(error || !data) return;
+  (data.favorites || []).forEach(id=>favorites.add(id));
+}
+
+function subscribeRealtime(){
+  if(!sbClient || !currentUser) return;
+  unsubscribeRealtime();
+  realtimeChannel = sbClient.channel('fav-sync-'+currentUser.id)
+    .on('postgres_changes',
+      { event:'*', schema:'public', table:'user_favorites', filter:`user_id=eq.${currentUser.id}` },
+      payload => {
+        const incoming = (payload.new && payload.new.favorites) || [];
+        favorites = new Set(incoming);
+        saveFavorites(favorites);
+        updateCountChip();
+        renderDock();
+        renderGrid();
+      }
+    )
+    .subscribe();
+}
+function unsubscribeRealtime(){
+  if(realtimeChannel){ sbClient.removeChannel(realtimeChannel); realtimeChannel = null; }
+}
+
+async function handleSignedIn(user){
+  currentUser = { id: user.id, email: user.email };
+  await pullFavoritesFromCloud();     // 클라우드 데이터와 이 기기 즐겨찾기 합치기
+  await pushFavoritesToCloud();       // 합친 결과를 다시 저장 (양쪽 다 최신화)
+  saveFavorites(favorites);
+  subscribeRealtime();
+  updateAuthUI();
+  updateCountChip();
+  renderDock();
+  renderGrid();
+}
+function handleSignedOut(){
+  currentUser = null;
+  unsubscribeRealtime();
+  updateAuthUI();
+}
+
+async function signUp(email, password){
+  if(!sbClient) return { error:'Supabase가 연결되지 않았어요.' };
+  return await sbClient.auth.signUp({ email, password });
+}
+async function signIn(email, password){
+  if(!sbClient) return { error:'Supabase가 연결되지 않았어요.' };
+  return await sbClient.auth.signInWithPassword({ email, password });
+}
+async function signOut(){
+  if(!sbClient) return;
+  await sbClient.auth.signOut();
+}
+
+function updateAuthUI(){
+  const loggedOut = document.getElementById('authLoggedOut');
+  const loggedIn = document.getElementById('authLoggedIn');
+  if(!loggedOut || !loggedIn) return;
+  if(currentUser){
+    loggedOut.style.display = 'none';
+    loggedIn.style.display = 'block';
+    document.getElementById('authEmail').textContent = currentUser.email;
+  }else{
+    loggedOut.style.display = 'block';
+    loggedIn.style.display = 'none';
+  }
+}
+
+if(sbClient){
+  sbClient.auth.onAuthStateChange((event, session)=>{
+    if(session && session.user) handleSignedIn(session.user);
+    else handleSignedOut();
+  });
+}
+
 
 let customPrompts = loadCustomPrompts();
 let overrides = loadOverrides();
+let favorites = loadFavorites();
 
 function buildPrompts(){
   return [...DEFAULT_PROMPTS, ...customPrompts].map(p =>
@@ -516,9 +960,11 @@ let activeCat = "all";
 
 function renderDock(){
   const dock = document.getElementById('dock');
-  dock.innerHTML = CATEGORIES.map(c =>
+  const catTabs = CATEGORIES.map(c =>
     `<div class="tab ${c.id===activeCat?'active':''}" data-cat="${c.id}">${c.label}</div>`
   ).join('');
+  const favTab = `<div class="tab fav-tab ${activeCat==='favorites'?'active':''}" data-cat="favorites">⭐ 즐겨찾기 (${favorites.size})</div>`;
+  dock.innerHTML = catTabs + favTab;
   dock.querySelectorAll('.tab').forEach(el=>{
     el.addEventListener('click', ()=>{
       activeCat = el.dataset.cat;
@@ -535,13 +981,16 @@ function catLabel(id){
 
 function renderGrid(){
   const grid = document.getElementById('grid');
-  const list = activeCat === 'all' ? PROMPTS : PROMPTS.filter(p=>p.cat===activeCat);
+  const list = activeCat === 'all' ? PROMPTS
+    : activeCat === 'favorites' ? PROMPTS.filter(p=>favorites.has(p.id))
+    : PROMPTS.filter(p=>p.cat===activeCat);
   grid.innerHTML = list.map(p => `
     <div class="card" data-id="${p.id}">
       <div class="card-top">
         <span class="tag mono">${catLabel(p.cat)}</span>
         <span style="display:flex; align-items:center; gap:8px;">
           <span class="tag mono">#${p.tag}</span>
+          <button class="fav-btn ${favorites.has(p.id)?'active':''}" data-id="${p.id}" title="즐겨찾기">${favorites.has(p.id) ? '★' : '☆'}</button>
           ${p.custom ? `<button class="card-del" data-id="${p.id}" title="삭제">✕</button>` : ''}
         </span>
       </div>
@@ -581,6 +1030,18 @@ function renderGrid(){
     });
   });
 
+  grid.querySelectorAll('.fav-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = Number(btn.dataset.id);
+      favorites.has(id) ? favorites.delete(id) : favorites.add(id);
+      persistFavorites();
+      updateCountChip();
+      renderDock();
+      renderGrid();
+    });
+  });
+
   grid.querySelectorAll('.card-del').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -588,10 +1049,13 @@ function renderGrid(){
       const id = Number(btn.dataset.id);
       customPrompts = customPrompts.filter(p=>p.id!==id);
       delete overrides[id];
+      favorites.delete(id);
       saveCustomPrompts(customPrompts);
       saveOverrides(overrides);
+      persistFavorites();
       PROMPTS = buildPrompts();
       updateCountChip();
+      renderDock();
       renderGrid();
     });
   });
@@ -599,6 +1063,7 @@ function renderGrid(){
 
 function updateCountChip(){
   document.getElementById('countChip').textContent = `📦 PROMPTS ${PROMPTS.length}`;
+  document.getElementById('favCountStat').textContent = favorites.size;
 }
 
 // navigator.clipboard가 막혀있는 환경(미리보기, 권한 미허용 iframe 등)을 대비한 폴백 복사 함수
@@ -643,6 +1108,82 @@ function openModal(){ document.getElementById('overlay').classList.add('show'); 
 function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
 document.getElementById('overlay').addEventListener('click', e=>{
   if(e.target.id==='overlay') closeModal();
+});
+
+/* ---------- 즐겨찾기 동기화 (코드 방식, 서버 없음) ---------- */
+function encodeFavorites(){
+  try{
+    return btoa(unescape(encodeURIComponent(JSON.stringify([...favorites]))));
+  }catch(err){ return ''; }
+}
+function decodeFavorites(code){
+  try{
+    const arr = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    return Array.isArray(arr) ? arr.filter(n=>typeof n==='number') : [];
+  }catch(err){ return null; }
+}
+function openSyncModal(){
+  document.getElementById('syncMyCode').value = encodeFavorites();
+  document.getElementById('syncInput').value = '';
+  document.getElementById('authMsg').textContent = '';
+  updateAuthUI();
+  document.getElementById('syncOverlay').classList.add('show');
+}
+function closeSyncModal(){ document.getElementById('syncOverlay').classList.remove('show'); }
+document.getElementById('syncOverlay').addEventListener('click', e=>{
+  if(e.target.id==='syncOverlay') closeSyncModal();
+});
+
+document.getElementById('signUpBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('auth_email').value.trim();
+  const pw = document.getElementById('auth_pw').value;
+  const msg = document.getElementById('authMsg');
+  if(!email || pw.length < 6){ msg.textContent = '이메일과 6자 이상 비밀번호를 입력해주세요.'; return; }
+  msg.textContent = '가입 처리중...';
+  const { error } = await signUp(email, pw);
+  if(error){ msg.textContent = '오류: ' + error.message; return; }
+  msg.textContent = '가입 완료! 바로 로그인해주세요.';
+});
+
+document.getElementById('signInBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('auth_email').value.trim();
+  const pw = document.getElementById('auth_pw').value;
+  const msg = document.getElementById('authMsg');
+  if(!email || !pw){ msg.textContent = '이메일과 비밀번호를 입력해주세요.'; return; }
+  msg.textContent = '로그인중...';
+  const { error } = await signIn(email, pw);
+  if(error){ msg.textContent = '오류: ' + error.message; return; }
+  msg.textContent = '';
+  showToast('로그인됐어요! ♥');
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+  await signOut();
+  showToast('로그아웃 됐어요');
+});
+
+document.getElementById('syncCopyBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('syncCopyBtn');
+  copyText(document.getElementById('syncMyCode').value).then(()=>{
+    btn.textContent = '✓ 복사됨';
+    setTimeout(()=>{ btn.textContent='📋 코드 복사'; }, 1600);
+  });
+});
+document.getElementById('syncLoadBtn').addEventListener('click', ()=>{
+  const raw = document.getElementById('syncInput').value;
+  if(!raw.trim()) return;
+  const ids = decodeFavorites(raw);
+  if(ids === null){
+    showToast('코드를 다시 확인해주세요');
+    return;
+  }
+  ids.forEach(id=>favorites.add(id));
+  persistFavorites();
+  updateCountChip();
+  renderDock();
+  renderGrid();
+  document.getElementById('syncMyCode').value = encodeFavorites();
+  showToast(`즐겨찾기 ${ids.length}개 불러왔어요 ♥`);
 });
 
 function openAddModal(){
@@ -694,7 +1235,14 @@ function openDetail(id){
   document.getElementById('d_when').value = p.when || '';
   document.getElementById('d_get').value = p.get || '';
   document.getElementById('d_body').value = p.body || '';
+  updateDetailFavBtn();
   document.getElementById('detailOverlay').classList.add('show');
+}
+function updateDetailFavBtn(){
+  const btn = document.getElementById('d_favBtn');
+  const isFav = currentDetailId!=null && favorites.has(currentDetailId);
+  btn.textContent = isFav ? '★' : '☆';
+  btn.classList.toggle('active', isFav);
 }
 function closeDetailModal(){
   document.getElementById('detailOverlay').classList.remove('show');
@@ -702,6 +1250,16 @@ function closeDetailModal(){
 }
 document.getElementById('detailOverlay').addEventListener('click', e=>{
   if(e.target.id==='detailOverlay') closeDetailModal();
+});
+
+document.getElementById('d_favBtn').addEventListener('click', ()=>{
+  if(currentDetailId==null) return;
+  favorites.has(currentDetailId) ? favorites.delete(currentDetailId) : favorites.add(currentDetailId);
+  persistFavorites();
+  updateDetailFavBtn();
+  updateCountChip();
+  renderDock();
+  renderGrid();
 });
 
 document.getElementById('d_saveBtn').addEventListener('click', ()=>{
