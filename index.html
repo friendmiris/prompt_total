@@ -120,9 +120,7 @@ body{
 
 .add-modal{max-width:420px; text-align:left;}
 .sync-desc{font-size:.85rem; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;}
-.sync-code{min-height:70px; font-size:.75rem; word-break:break-all;}
 .sync-hint{font-size:.7rem; color:var(--ink-soft); margin-top:8px; text-align:center;}
-.sync-divider{border:none; border-top:2px dashed var(--line); opacity:.35; margin:22px 0;}
 .auth-msg{font-size:.75rem; min-height:1.2em; margin-top:8px; color:var(--accent);}
 .field-label{display:block; font-size:.72rem; font-weight:600; color:var(--ink-soft); margin:12px 0 5px;}
 .field-label:first-of-type{margin-top:4px;}
@@ -339,18 +337,6 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
       <p class="sync-desc">👋 <span id="authEmail"></span> 님으로 로그인됨 — 즐겨찾기가 실시간으로 저장/동기화되고 있어요.</p>
       <button type="button" class="save-btn" id="signOutBtn" style="background:var(--ink); color:var(--paper);">로그아웃</button>
     </div>
-
-    <hr class="sync-divider">
-
-    <p class="sync-desc" style="margin-bottom:8px;">또는, 로그인 없이 코드로 임시 동기화하기</p>
-    <label class="field-label mono">① 내 코드 (이 기기의 즐겨찾기)</label>
-    <textarea id="syncMyCode" class="field-input field-textarea sync-code" readonly></textarea>
-    <button type="button" class="save-btn" id="syncCopyBtn">📋 코드 복사</button>
-
-    <label class="field-label mono" style="margin-top:20px;">② 다른 기기에서 받은 코드 붙여넣기</label>
-    <textarea id="syncInput" class="field-input field-textarea sync-code" placeholder="여기에 코드를 붙여넣으세요"></textarea>
-    <button type="button" class="save-btn" id="syncLoadBtn" style="background:var(--accent-2); color:#fff;">⬇️ 이 코드로 불러오기</button>
-    <p class="sync-hint mono">불러오면 기존 즐겨찾기와 합쳐져요(덮어쓰지 않음)</p>
   </div>
 </div>
 
@@ -1110,21 +1096,8 @@ document.getElementById('overlay').addEventListener('click', e=>{
   if(e.target.id==='overlay') closeModal();
 });
 
-/* ---------- 즐겨찾기 동기화 (코드 방식, 서버 없음) ---------- */
-function encodeFavorites(){
-  try{
-    return btoa(unescape(encodeURIComponent(JSON.stringify([...favorites]))));
-  }catch(err){ return ''; }
-}
-function decodeFavorites(code){
-  try{
-    const arr = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
-    return Array.isArray(arr) ? arr.filter(n=>typeof n==='number') : [];
-  }catch(err){ return null; }
-}
+/* ---------- 즐겨찾기 동기화 (로그인 기반) ---------- */
 function openSyncModal(){
-  document.getElementById('syncMyCode').value = encodeFavorites();
-  document.getElementById('syncInput').value = '';
   document.getElementById('authMsg').textContent = '';
   updateAuthUI();
   document.getElementById('syncOverlay').classList.add('show');
@@ -1160,30 +1133,6 @@ document.getElementById('signInBtn').addEventListener('click', async ()=>{
 document.getElementById('signOutBtn').addEventListener('click', async ()=>{
   await signOut();
   showToast('로그아웃 됐어요');
-});
-
-document.getElementById('syncCopyBtn').addEventListener('click', ()=>{
-  const btn = document.getElementById('syncCopyBtn');
-  copyText(document.getElementById('syncMyCode').value).then(()=>{
-    btn.textContent = '✓ 복사됨';
-    setTimeout(()=>{ btn.textContent='📋 코드 복사'; }, 1600);
-  });
-});
-document.getElementById('syncLoadBtn').addEventListener('click', ()=>{
-  const raw = document.getElementById('syncInput').value;
-  if(!raw.trim()) return;
-  const ids = decodeFavorites(raw);
-  if(ids === null){
-    showToast('코드를 다시 확인해주세요');
-    return;
-  }
-  ids.forEach(id=>favorites.add(id));
-  persistFavorites();
-  updateCountChip();
-  renderDock();
-  renderGrid();
-  document.getElementById('syncMyCode').value = encodeFavorites();
-  showToast(`즐겨찾기 ${ids.length}개 불러왔어요 ♥`);
 });
 
 function openAddModal(){
