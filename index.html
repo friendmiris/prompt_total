@@ -378,7 +378,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
 
 <div class="overlay" id="detailOverlay">
   <div class="modal detail-modal">
-    <div class="window-bar detail-bar">
+    <div class="window-bar detail-bar" id="d_bar">
       <div class="traffic"><span class="r" onclick="closeDetailModal()" style="cursor:pointer;"></span><span class="y"></span><span class="g"></span></div>
       <span class="path mono" id="d_path">↻ prompt-desk/detail</span>
       <span class="close detail-close" onclick="closeDetailModal()">✕</span>
@@ -427,14 +427,14 @@ const sbClient = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
 // 카테고리(탭) 정의. id는 프롬프트의 cat 값과 반드시 일치해야 함
 const CATEGORIES = [
   { id: "all",     label: "✦ ALL" },
-  { id: "content", label: "⌨️ 콘텐츠 제작" },
-  { id: "growth",  label: "📈 계정 성장" },
-  { id: "work",    label: "💼 회사 꿀템" },
-  { id: "money",   label: "💰 수익 & 미래" },
-  { id: "visual",  label: "🎨 영상·이미지" },
-  { id: "self",    label: "🔮 자기이해" },
-  { id: "routine", label: "🗓 루틴 & 회고" },
-  { id: "study",   label: "🧠 학습 & 정리" }
+  { id: "content", label: "⌨️ 콘텐츠 제작", color: "#FBD9E4" },
+  { id: "growth",  label: "📈 계정 성장",   color: "#D9E4FB" },
+  { id: "work",    label: "💼 회사 꿀템",   color: "#FBE9C6" },
+  { id: "money",   label: "💰 수익 & 미래", color: "#D6F0DC" },
+  { id: "visual",  label: "🎨 영상·이미지", color: "#E6D9FB" },
+  { id: "self",    label: "🔮 자기이해",   color: "#FBD9D9" },
+  { id: "routine", label: "🗓 루틴 & 회고", color: "#D9F5F0" },
+  { id: "study",   label: "🧠 학습 & 정리", color: "#FDEBC8" }
 ];
 
 // 프롬프트 카드. 자유롭게 추가/삭제하세요. id는 겹치지 않게!
@@ -964,15 +964,25 @@ function catLabel(id){
   const c = CATEGORIES.find(c=>c.id===id);
   return c ? c.label.replace(/^[^\s]+\s/, '') : id;
 }
+function catColor(id){
+  const c = CATEGORIES.find(c=>c.id===id);
+  return (c && c.color) ? c.color : '#FDD9E8';
+}
+
+function catIndex(id){
+  const i = CATEGORIES.findIndex(c=>c.id===id);
+  return i === -1 ? 999 : i;
+}
 
 function renderGrid(){
   const grid = document.getElementById('grid');
-  const list = activeCat === 'all' ? PROMPTS
+  const list = activeCat === 'all'
+    ? [...PROMPTS].sort((a,b)=>catIndex(a.cat)-catIndex(b.cat))
     : activeCat === 'favorites' ? PROMPTS.filter(p=>favorites.has(p.id))
     : PROMPTS.filter(p=>p.cat===activeCat);
   grid.innerHTML = list.map(p => `
     <div class="card" data-id="${p.id}">
-      <div class="card-top">
+      <div class="card-top" style="background:${catColor(p.cat)};">
         <span class="tag mono">${catLabel(p.cat)}</span>
         <span style="display:flex; align-items:center; gap:8px;">
           <span class="tag mono">#${p.tag}</span>
@@ -1179,6 +1189,7 @@ function openDetail(id){
   if(!p) return;
   currentDetailId = id;
   document.getElementById('d_path').textContent = `↻ prompt-desk/detail/${p.tag || 'prompt'}`;
+  document.getElementById('d_bar').style.background = catColor(p.cat);
   document.getElementById('d_title').value = p.title || '';
   document.getElementById('d_desc').value = p.desc || '';
   document.getElementById('d_when').value = p.when || '';
