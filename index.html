@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>@mill_prompt · 나만의 프롬프트 아카이브</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <style>
 
 /* ============================================================
@@ -32,7 +32,7 @@
   --shadow: 5px 5px 0 var(--chrome);
 }
 
-*{box-sizing:border-box; margin:0; padding:0;}
+*{box-sizing:border-box; margin:0; padding:0; word-break:keep-all; overflow-wrap:break-word;}
 html{scroll-behavior:smooth;}
 body{
   background:
@@ -93,10 +93,16 @@ body{
 .sync-btn{background:var(--accent-2); color:#fff;}
 
 /* ---------- hero window ---------- */
-.hero{max-width:920px; margin:36px auto 24px; padding:0 20px;}
+.bg-blob{
+  position:fixed; border-radius:50%; filter:blur(50px); pointer-events:none; z-index:0;
+}
+.blob-a{ width:340px; height:340px; top:-60px; left:-90px; background:var(--accent); opacity:.28; }
+.blob-b{ width:380px; height:380px; top:-40px; right:-110px; background:var(--accent-2); opacity:.28; }
+
+.hero{max-width:920px; margin:36px auto 24px; padding:0 20px; position:relative;}
 .window{
   background:var(--paper); border:2px solid var(--line); border-radius:var(--radius);
-  box-shadow:var(--shadow); overflow:hidden;
+  box-shadow:var(--shadow); overflow:hidden; position:relative; z-index:1;
 }
 .window-bar{
   display:flex; align-items:center; justify-content:space-between;
@@ -107,18 +113,53 @@ body{
 .traffic{display:flex; gap:6px;}
 .traffic span{width:11px;height:11px;border:1.5px solid var(--line);border-radius:50%;display:inline-block;}
 .traffic .r{background:var(--accent);} .traffic .y{background:var(--accent-3);} .traffic .g{background:var(--accent-2);}
-.hero-body{padding:30px 26px 26px;}
-.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:.78rem; letter-spacing:.06em; color:var(--accent); font-weight:600;}
-.hero h1{font-size:clamp(1.8rem,4vw,2.6rem); line-height:1.15; margin:10px 0 12px; font-weight:700;}
-.hero p{color:var(--ink-soft); font-size:.98rem; line-height:1.6; max-width:60ch;}
-.stat-row{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
-.stat{
-  font-family:'IBM Plex Mono',monospace; font-size:.78rem; border:2px solid var(--line);
-  border-radius:20px; padding:6px 12px; background:#fff;
+.hero-body{padding:44px 26px 34px; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.eyebrow-badge{
+  display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:.75rem;
+  background:var(--accent-3); border:2px solid var(--line); border-radius:20px; padding:7px 16px;
+  box-shadow:2px 2px 0 var(--line);
 }
+.hero h1{
+  font-family:'Gaegu','Space Grotesk',sans-serif;
+  font-size:clamp(2.3rem,6.5vw,3.6rem); line-height:1.3; margin:18px 0 14px; font-weight:700;
+  max-width:16ch;
+}
+.hero p{color:var(--ink-soft); font-size:.98rem; line-height:1.6; max-width:52ch; margin:0 auto;}
+.heart-row{ margin-top:18px; font-size:1.1rem; letter-spacing:6px; opacity:.85; }
+.stat-row{display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; justify-content:center;}
+.stat{
+  font-family:'IBM Plex Mono',monospace; font-size:.78rem; font-weight:600; border:2px solid var(--line);
+  border-radius:20px; padding:7px 14px; background:#fff; box-shadow:2px 2px 0 var(--line);
+}
+.stat-blue{background:#D9E4FB;}
+.stat-pink{background:#FBD9E4;}
+.stat-mint{background:#D6F0DC;}
+
+.hero-sticky{
+  position:absolute; z-index:5; font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:700;
+  text-align:center; line-height:1.35; padding:9px 13px; border:2px solid var(--line); border-radius:10px;
+  box-shadow:3px 3px 0 var(--line); pointer-events:none;
+}
+.hero-sticky.top-right{ top:-16px; right:8px; transform:rotate(6deg); background:var(--accent-3); color:var(--ink); }
+.hero-sticky.bottom-left{ bottom:-16px; left:14px; transform:rotate(-5deg); background:var(--accent-2); color:#fff; }
+@media (max-width:640px){ .hero-sticky{ display:none; } }
 
 /* ---------- category dock ---------- */
 .dock-wrap{max-width:920px; margin:0 auto; padding:0 20px;}
+.search-row{
+  display:flex; align-items:center; gap:8px;
+  background:var(--paper); border:2px solid var(--line); border-radius:24px;
+  padding:10px 16px; margin-top:16px;
+  box-shadow:3px 3px 0 var(--line);
+}
+.search-icon{font-size:.9rem; opacity:.6;}
+.search-input{
+  flex:1; border:none; outline:none; background:none;
+  font-family:'Space Grotesk',sans-serif; font-size:.92rem; color:var(--ink);
+}
+.search-input::placeholder{color:var(--ink-soft); opacity:.7;}
+.search-clear{cursor:pointer; color:var(--ink-soft); font-size:.85rem; padding:2px 4px;}
+.search-clear:hover{color:var(--accent);}
 .dock{
   display:flex; gap:8px; flex-wrap:wrap; padding:14px 0;
 }
@@ -300,6 +341,9 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
 </head>
 <body>
 
+<div class="bg-blob blob-a"></div>
+<div class="bg-blob blob-b"></div>
+
 <div class="marquee-wrap">
   <div class="marquee-track" id="marqueeTrack"></div>
 </div>
@@ -314,25 +358,33 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
 </div>
 
 <div class="hero">
+  <div class="hero-sticky top-right">✨ new drop!<br>매주 업데이트</div>
+  <div class="hero-sticky bottom-left">💌 오늘도<br>득템하세요</div>
   <div class="window">
     <div class="window-bar">
       <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
       <div class="path mono">↻ mill_prompt/home</div>
     </div>
     <div class="hero-body">
-      <div class="eyebrow mono">FREE · COPY & PASTE</div>
+      <div class="eyebrow-badge mono">💾 FREE PROMPT DROP · NO COST</div>
       <h1 id="siteTitle">쓰던 프롬프트, 여기 다 모아둠</h1>
       <p id="siteDesc">직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.</p>
+      <div class="heart-row">♥ ♡ ♥ ♡ ♥</div>
       <div class="stat-row">
-        <span class="stat mono">🗂 카테고리 <span id="catCountStat">0</span></span>
-        <span class="stat mono">⭐ 즐겨찾기 <span id="favCountStat">0</span></span>
-        <span class="stat mono">📋 1-클릭 복사</span>
+        <span class="stat mono stat-blue">🗂 카테고리 <span id="catCountStat">0</span></span>
+        <span class="stat mono stat-pink">⭐ 즐겨찾기 <span id="favCountStat">0</span></span>
+        <span class="stat mono stat-mint">📋 1-클릭 복사</span>
       </div>
     </div>
   </div>
 </div>
 
 <div class="dock-wrap">
+  <div class="search-row">
+    <span class="search-icon">🔍</span>
+    <input id="searchInput" class="search-input" type="text" placeholder="search the site...">
+    <span class="search-clear" id="searchClear" style="display:none;">✕</span>
+  </div>
   <div class="dock-row">
     <div class="dock" id="dock"></div>
     <div style="display:flex; gap:8px;">
@@ -478,7 +530,7 @@ footer{text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.72re
    ============================================================ */
 
 const SITE = {
-  title: "쓰던 프롬프트, 여기 다 모아둠",
+  title: "쓰던 프롬프트\n여기 다 모아둠",
   desc: "직접 써보고 다듬은 프롬프트만 정리했어요. 카테고리 눌러서 필요한 거 찾고, 카드 눌러서 복사하면 끝.",
   instagramUrl: "https://instagram.com/여기에_본인_계정"
 };
@@ -1078,6 +1130,7 @@ function buildPrompts(){
 let PROMPTS = buildPrompts();
 
 let activeCat = "all";
+let searchQuery = "";
 
 function renderDock(){
   const dock = document.getElementById('dock');
@@ -1109,12 +1162,20 @@ function catIndex(id){
   return i === -1 ? 999 : i;
 }
 
+function matchesSearch(p, q){
+  if(!q) return true;
+  const haystack = `${p.title||''} ${p.tag||''} ${p.desc||''} ${p.when||''} ${p.get||''}`.toLowerCase();
+  return haystack.includes(q);
+}
+
 function renderGrid(){
   const grid = document.getElementById('grid');
-  const list = activeCat === 'all'
+  let list = activeCat === 'all'
     ? [...PROMPTS].sort((a,b)=>catIndex(a.cat)-catIndex(b.cat))
     : activeCat === 'favorites' ? PROMPTS.filter(p=>favorites.has(p.id))
     : PROMPTS.filter(p=>p.cat===activeCat);
+  const q = searchQuery.trim().toLowerCase();
+  if(q) list = list.filter(p=>matchesSearch(p, q));
   grid.innerHTML = list.map(p => `
     <div class="card" data-id="${p.id}">
       <div class="card-top" style="background:${catColor(p.cat)};">
@@ -1136,7 +1197,7 @@ function renderGrid(){
         <button class="copy-btn" data-id="${p.id}">📋 COPY PROMPT</button>
       </div>
     </div>
-  `).join('') || `<p class="mono" style="color:var(--ink-soft)">아직 이 카테고리엔 프롬프트가 없어요.</p>`;
+  `).join('') || `<p class="mono" style="color:var(--ink-soft)">${q ? `"${searchQuery}"에 맞는 프롬프트가 없어요.` : '아직 이 카테고리엔 프롬프트가 없어요.'}</p>`;
 
   grid.querySelectorAll('.card').forEach(card=>{
     card.addEventListener('click', e=>{
@@ -1490,13 +1551,32 @@ function updateCatCountStat(){
   document.getElementById('catCountStat').textContent = ACTIVE_CATEGORIES.length - 1;
 }
 
+function setupSearch(){
+  const input = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('searchClear');
+  input.addEventListener('input', ()=>{
+    searchQuery = input.value;
+    clearBtn.style.display = searchQuery ? 'inline' : 'none';
+    renderGrid();
+  });
+  clearBtn.addEventListener('click', ()=>{
+    input.value = '';
+    searchQuery = '';
+    clearBtn.style.display = 'none';
+    renderGrid();
+    input.focus();
+  });
+}
+
 function init(){
-  document.getElementById('siteTitle').textContent = SITE.title;
+  document.getElementById('siteTitle').innerHTML = SITE.title
+    .split('\n').map(line => line.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br>');
   document.getElementById('siteDesc').textContent = SITE.desc;
   document.getElementById('followLink').href = SITE.instagramUrl;
   updateCountChip();
   updateCatCountStat();
   renderMarquee();
+  setupSearch();
   renderDock();
   renderGrid();
 }
